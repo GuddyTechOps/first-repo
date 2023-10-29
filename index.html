@@ -1,0 +1,51 @@
+<!-- TO SEE THE NUMBER OF WORDS IN A GITHUB REPOSITORY'S FILE...FOR INDIVIDUAL ..WORKSSSS...INSIDE THE FILE ...it gives and input for the repo username and repo name on the browser-->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Github Repository Word Search</title>
+</head>
+<body>
+    <h1>Search Word Occurrences in a GitHub Repository</h1>
+    <input type="text" id="ownerInput" placeholder="Enter repository owner username">
+    <input type="text" id="repoInput" placeholder="Enter repository name">
+    <input type="text" id="searchInput" placeholder="Enter word to search">
+    <button onclick="searchRepository()">Search</button>
+    <div id="result"></div>
+
+    <script>
+        async function searchRepository() {
+            const searchWord = document.getElementById('searchInput').value;
+            const repoOwner = document.getElementById('ownerInput').value;
+            const repoName = document.getElementById('repoInput').value;
+
+            if (searchWord === '' || repoOwner === '' || repoName === '') {
+                alert('Please fill in all fields to search.');
+                return;
+            }
+
+            const accessToken = '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'; // Replace 'your_access_token' with your GitHub personal access token
+
+            const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents`;
+            const response = await fetch(apiUrl, {
+                headers: {
+                    Authorization: `token ${accessToken}`
+                }
+            });
+
+            const contents = await response.json();
+            let totalOccurrences = 0;
+
+            for (const file of contents) {
+                if (file.type === 'file' && file.name.endsWith('.html')) { // Change file type according to your requirements
+                    const fileContentResponse = await fetch(file.download_url);
+                    const fileContent = await fileContentResponse.text();
+                    const occurrences = fileContent.split(searchWord).length - 1;
+                    totalOccurrences += occurrences;
+                }
+            }
+
+            document.getElementById('result').innerHTML = `Total occurrences of '${searchWord}' in the repository: ${totalOccurrences}`;
+        }
+    </script>
+</body>
+</html>
