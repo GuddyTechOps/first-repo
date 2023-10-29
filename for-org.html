@@ -1,0 +1,63 @@
+<!-- TO SEE THE NUMBER OF WORDS IN A GITHUB REPOSITORY'S FILE...FOR ORGANISATIONS .....INSIDE THE FILE ...it gives and input for the repo username and repo name on the browser-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Github Organization Word Search</title>
+</head>
+<body>
+    <h1>Search Word Occurrences in an Organization's Repositories</h1>
+    <input type="text" id="orgInput" placeholder="Enter organization name">
+    <input type="text" id="searchInput" placeholder="Enter word to search">
+    <button onclick="searchOrganization()">Search</button>
+    <div id="result"></div>
+
+    <script>
+        async function searchOrganization() {
+            const searchWord = document.getElementById('searchInput').value;
+            const orgName = document.getElementById('orgInput').value;
+
+            if (searchWord === '' || orgName === '') {
+                alert('Please fill in all fields to search.');
+                return;
+            }
+
+            const accessToken = 'your_access_token'; // Replace 'your_access_token' with your GitHub personal access token
+
+            const apiUrl = `https://api.github.com/orgs/${orgName}/repos`;
+            const response = await fetch(apiUrl, {
+                headers: {
+                    Authorization: `token ${accessToken}`
+                }
+            });
+
+            const data = await response.json();
+            let totalOccurrences = 0;
+
+            for (const repo of data) {
+                const repoName = repo.full_name;
+
+                const repoContentUrl = `https://api.github.com/repos/${repoName}/contents`;
+                const contentResponse = await fetch(repoContentUrl, {
+                    headers: {
+                        Authorization: `token ${accessToken}`
+                    }
+                });
+
+                const contents = await contentResponse.json();
+
+                for (const file of contents) {
+                    if (file.type === 'file' && file.name.endsWith('.js')) { // Change file type according to your requirements
+                        const fileContentResponse = await fetch(file.download_url);
+                        const fileContent = await fileContentResponse.text();
+                        const occurrences = fileContent.split(searchWord).length - 1;
+                        totalOccurrences += occurrences;
+                    }
+                }
+            }
+
+            document.getElementById('result').innerHTML = `Total occurrences of '${searchWord}' in the organization's repositories: ${totalOccurrences}`;
+        }
+    </script>
+</body>
+</html>
